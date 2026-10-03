@@ -50,7 +50,7 @@ app.get('/api/quotes/random', async (req, res) => {
     console.log('Secondary external API unavailable, using local synthetic database...');
   }
 
-  // Fallback: Local Synthetic Fallback Dataset
+  // Fallback: Local Synthetic Database
   let pool = fallbackQuotes;
   if (category && category !== 'All') {
     const filtered = pool.filter(q => q.category.toLowerCase() === category.toLowerCase());
@@ -184,16 +184,35 @@ app.get('/api/stats', async (req, res) => {
   }
 });
 
-// Serve Static Frontend Assets (dist) if available
-const distPath = path.join(__dirname, '../dist');
-if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api')) {
-      res.sendFile(path.join(distPath, 'index.html'));
-    }
-  });
-}
+// Serve Static Frontend Assets (dist)
+const distPath = fs.existsSync(path.resolve(process.cwd(), 'dist'))
+  ? path.resolve(process.cwd(), 'dist')
+  : path.join(__dirname, '../dist');
+
+app.use(express.static(distPath));
+
+// Catch-all route for Single Page Application
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ error: 'API endpoint not found' });
+  }
+
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(500).send(`
+      <!DOCTYPE html>
+      <html>
+        <head><title>AuraQuote • Building...</title></head>
+        <body style="font-family:sans-serif; text-align:center; padding:50px; background:#faf8f5;">
+          <h2>AuraQuote Server Active</h2>
+          <p>Frontend dist directory is generating... Please refresh in a few moments.</p>
+        </body>
+      </html>
+    `);
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`AuraQuote Fullstack Server running on http://localhost:${PORT}`);

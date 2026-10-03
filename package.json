@@ -4,11 +4,12 @@
   "description": "Quote Generator with History and Database",
   "main": "server/index.js",
   "scripts": {
+    "prestart": "npm run build",
+    "start": "node server/index.js",
     "dev": "concurrently \"node server/index.js\" \"vite\"",
     "server": "node server/index.js",
     "client": "vite",
-    "build": "vite build",
-    "start": "node server/index.js"
+    "build": "vite build"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",
