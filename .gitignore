@@ -3,7 +3,6 @@ node_modules
 .pnpm-store
 
 # production
-dist
 build
 
 # local env files
